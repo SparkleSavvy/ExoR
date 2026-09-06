@@ -70,6 +70,7 @@ impl ElyByTokenResponse {
 
 #[derive(Deserialize, Debug)]
 pub struct ElyByAccount {
+    #[allow(dead_code)]
     pub id: i64,
     pub username: String,
     pub uuid: String,

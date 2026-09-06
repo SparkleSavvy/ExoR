@@ -1,7 +1,7 @@
 use super::content::get_projects;
 use crate::server_address::ServerAddress;
 use crate::state::{
-    Credentials, InstanceLink, ProcessMetadata, Settings, State,
+AccountType, Credentials, InstanceLink, ProcessMetadata, Settings, State,
     game_options_sync_is_enabled, load_game_option_preferences,
 };
 use crate::util::fetch;
@@ -246,8 +246,13 @@ async fn run_credentials(
         && !project_id.trim().is_empty()
     {
         let server_id = uuid::Uuid::new_v4().to_string();
+        let session_join_url = if credentials.account_type == AccountType::ElyBy {
+            crate::state::elyby::ELYBY_SESSION_JOIN_URL
+        } else {
+            "https://sessionserver.mojang.com/session/minecraft/join"
+        };
         let join_result = fetch::INSECURE_REQWEST_CLIENT
-			.post("https://sessionserver.mojang.com/session/minecraft/join")
+			.post(session_join_url)
 			.json(&json!({
 				"accessToken": &credentials.access_token,
 				"selectedProfile": credentials.offline_profile.id.simple().to_string(),

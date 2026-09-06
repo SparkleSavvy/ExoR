@@ -3,15 +3,19 @@
 use reqwest::StatusCode;
 
 use crate::State;
-use crate::state::{Credentials, MinecraftLoginFlow};
+use crate::state::{AccountType, Credentials, MinecraftLoginFlow};
 use crate::util::fetch::INSECURE_REQWEST_CLIENT;
 
 #[tracing::instrument]
 pub async fn check_reachable() -> crate::Result<()> {
-    let resp = INSECURE_REQWEST_CLIENT
-        .get("https://sessionserver.mojang.com/session/minecraft/hasJoined")
-        .send()
-        .await?;
+    let state = State::get().await?;
+    let default = Credentials::get_default_credential(&state.pool).await?;
+    let url = default
+        .as_ref()
+        .filter(|user| user.account_type == AccountType::ElyBy)
+        .map(|_| "https://sessionserver.ely.by/session/minecraft/hasJoined")
+        .unwrap_or("https://sessionserver.mojang.com/session/minecraft/hasJoined");
+    let resp = INSECURE_REQWEST_CLIENT.get(url).send().await?;
     if resp.status() == StatusCode::NO_CONTENT {
         return Ok(());
     }

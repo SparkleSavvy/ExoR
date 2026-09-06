@@ -2,7 +2,7 @@
 use crate::instance::QuickPlayType;
 use crate::launcher::quick_play_version::QuickPlayServerVersion;
 use crate::launcher::{QuickPlayVersion, parse_rules};
-use crate::state::Credentials;
+use crate::state::{AccountType, Credentials};
 use crate::{
     state::{MemorySettings, WindowSize},
     util::{io::IOError, platform::classpath_separator},
@@ -124,6 +124,7 @@ pub fn get_jvm_arguments(
     quick_play_version: QuickPlayVersion,
     log_config: Option<&LoggingConfiguration>,
     ipc_addr: SocketAddr,
+    account_type: AccountType,
 ) -> crate::Result<Vec<String>> {
     let mut parsed_arguments = Vec::new();
 
@@ -180,6 +181,22 @@ pub fn get_jvm_arguments(
             })?
             .to_string_lossy()
     ));
+
+    if account_type == AccountType::ElyBy {
+        parsed_arguments.push(format!(
+            "-javaagent:{}=https://authserver.ely.by",
+            canonicalize(agent_path)
+                .map_err(|_| {
+                    crate::ErrorKind::LauncherError(format!(
+                        "Specified Java Agent path {} does not exist",
+                        libraries_path.to_string_lossy()
+                    ))
+                    .as_error()
+                })?
+                .to_string_lossy()
+        ));
+        parsed_arguments.push("-Dauthlibinjector.side=client".to_string());
+    }
 
     parsed_arguments
         .push(format!("-Dmodrinth.internal.ipc.host={}", ipc_addr.ip()));
@@ -550,4 +567,72 @@ pub async fn get_processor_main_class(
     .await??;
 
     Ok(main_class)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::launcher::quick_play_version::QuickPlayServerVersion;
+    use crate::state::MemorySettings;
+    use std::io::Write;
+    use std::net::SocketAddr;
+
+    fn quick_play_version() -> QuickPlayVersion {
+        QuickPlayVersion {
+            server: QuickPlayServerVersion::Unsupported,
+            singleplayer:
+                crate::launcher::quick_play_version::QuickPlaySingleplayerVersion::Unsupported,
+        }
+    }
+
+    fn invoke(account_type: AccountType) -> Vec<String> {
+        let tmp = tempfile::tempdir().unwrap();
+        let agent_path = tmp.path().join("agent.jar");
+        let natives_path = tmp.path().join("natives");
+        std::fs::create_dir_all(&natives_path).unwrap();
+        let mut f = std::fs::File::create(&agent_path).unwrap();
+        f.write_all(b"agent").unwrap();
+        drop(f);
+
+        get_jvm_arguments(
+            None,
+            &natives_path,
+            tmp.path(),
+            tmp.path(),
+            "",
+            &agent_path,
+            "1.20.1",
+            MemorySettings { maximum: 2048 },
+            Vec::new(),
+            "amd64",
+            &QuickPlayType::None,
+            quick_play_version(),
+            None,
+            "127.0.0.1:25565".parse::<SocketAddr>().unwrap(),
+            account_type,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn elyby_uses_authlib_injector() {
+        let args = invoke(AccountType::ElyBy);
+        assert!(args
+            .iter()
+            .any(|a| a.starts_with("-javaagent:") && a.contains("authserver.ely.by")));
+        assert!(args
+            .iter()
+            .any(|a| a == "-Dauthlibinjector.side=client"));
+    }
+
+    #[test]
+    fn microsoft_does_not_use_authlib_injector() {
+        let args = invoke(AccountType::Microsoft);
+        assert!(!args
+            .iter()
+            .any(|a| a.starts_with("-javaagent:") && a.contains("authserver.ely.by")));
+        assert!(!args
+            .iter()
+            .any(|a| a == "-Dauthlibinjector.side=client"));
+    }
 }

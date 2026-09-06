@@ -1057,6 +1057,7 @@ pub async fn launch_minecraft(
                 .as_ref()
                 .and_then(|x| x.get(&LoggingSide::Client)),
             rpc_server.address(),
+            credentials.account_type,
         )?
         .into_iter(),
     );
