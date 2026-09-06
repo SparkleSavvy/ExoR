@@ -4451,6 +4451,9 @@
   "minecraft-account.add-account": {
     "message": "Add account"
   },
+  "minecraft-account.add-elyby-account": {
+    "message": "Add ely.by account"
+  },
   "minecraft-account.label": {
     "message": "Minecraft account"
   },
@@ -4465,6 +4468,9 @@
   },
   "minecraft-account.sign-in": {
     "message": "Sign in to Minecraft"
+  },
+  "minecraft-account.sign-in-elyby": {
+    "message": "Sign in with ely.by"
   },
   "minecraft-required.description": {
     "message": "You need a Microsoft account that owns Minecraft before you can launch and play."

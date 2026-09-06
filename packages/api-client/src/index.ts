@@ -28,6 +28,7 @@ export {
 	InMemoryCircuitBreakerStorage,
 } from './features/circuit-breaker'
 export { type NodeAuth, type NodeAuthConfig, NodeAuthFeature } from './features/node-auth'
+export { type OfflineCacheConfig, OfflineCacheFeature } from './features/offline-cache'
 export { PANEL_VERSION, PanelVersionFeature } from './features/panel-version'
 export { type BackoffStrategy, type RetryConfig, RetryFeature } from './features/retry'
 export { type VerboseLoggingConfig, VerboseLoggingFeature } from './features/verbose-logging'

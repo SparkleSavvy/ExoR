@@ -4,6 +4,7 @@ import {
 	ModrinthApiError,
 	NodeAuthFeature,
 	nodeAuthState,
+	OfflineCacheFeature,
 	PanelVersionFeature,
 	TauriModrinthClient,
 	VerboseLoggingFeature,
@@ -123,6 +124,7 @@ import {
 	take_ads_window_hold,
 } from '@/helpers/ads.js'
 import { debugAnalytics, initAnalytics, trackEvent } from '@/helpers/analytics'
+import { api_cache_get, api_cache_set } from '@/helpers/apiCache.js'
 import { check_reachable } from '@/helpers/auth.js'
 import { get_user, get_user_many, get_version } from '@/helpers/cache.js'
 import { gameSettingsQueryOptions } from '@/helpers/game-options'
@@ -341,6 +343,11 @@ const tauriApiClient = new TauriModrinthClient({
 		}),
 		new PanelVersionFeature(),
 		new VerboseLoggingFeature(),
+		new OfflineCacheFeature({
+			get: api_cache_get,
+			set: api_cache_set,
+			isOffline: () => localStorage.getItem('offline') === 'true',
+		}),
 	],
 })
 provideModrinthClient(tauriApiClient)
