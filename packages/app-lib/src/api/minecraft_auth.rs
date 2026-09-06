@@ -27,6 +27,12 @@ pub async fn begin_login() -> crate::Result<MinecraftLoginFlow> {
 }
 
 #[tracing::instrument]
+pub async fn elyby_begin_login() -> crate::Result<MinecraftLoginFlow> {
+    let state = State::get().await?;
+    crate::state::elyby_login_begin(&state.pool).await
+}
+
+#[tracing::instrument]
 pub async fn finish_login(
     code: &str,
     flow: MinecraftLoginFlow,

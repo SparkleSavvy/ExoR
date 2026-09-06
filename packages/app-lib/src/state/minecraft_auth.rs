@@ -174,11 +174,44 @@ pub async fn login_begin(
 }
 
 #[tracing::instrument]
+pub async fn elyby_login_begin(
+    _exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
+) -> crate::Result<MinecraftLoginFlow> {
+    let verifier = generate_oauth_challenge();
+    let digest = sha2::Sha256::digest(&verifier);
+    let challenge = BASE64_URL_SAFE_NO_PAD.encode(digest);
+    let state = generate_oauth_challenge();
+
+    let client_id = super::elyby::elyby_client_id();
+    let redirect_uri = super::elyby::elyby_redirect_uri();
+
+    let auth_request_uri = super::elyby::elyby_authorize_url(
+        &client_id,
+        &redirect_uri,
+        &state,
+        Some(&challenge),
+    )?
+    .to_string();
+
+    Ok(MinecraftLoginFlow {
+        account_type: AccountType::ElyBy,
+        verifier,
+        challenge,
+        session_id: String::new(),
+        auth_request_uri,
+    })
+}
+
+#[tracing::instrument]
 pub async fn login_finish(
     code: &str,
     flow: MinecraftLoginFlow,
     exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
 ) -> crate::Result<Credentials> {
+    if flow.account_type == AccountType::ElyBy {
+        return finish_elyby_login(code, flow, exec).await;
+    }
+
     let (pair, _) =
         DeviceTokenPair::refresh_and_get_device_token(Utc::now(), exec).await?;
 
@@ -230,6 +263,55 @@ pub async fn login_finish(
 
     credentials.upsert(exec).await?;
 
+    Ok(credentials)
+}
+
+async fn finish_elyby_login(
+    code: &str,
+    flow: MinecraftLoginFlow,
+    exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
+) -> crate::Result<Credentials> {
+    let client_id = super::elyby::elyby_client_id();
+    let client_secret = super::elyby::elyby_client_secret();
+    let redirect_uri = super::elyby::elyby_redirect_uri();
+
+    let token = super::elyby::elyby_exchange_code(
+        code,
+        &flow.verifier,
+        &redirect_uri,
+        &client_id,
+        client_secret.as_deref(),
+    )
+    .await
+    .map_err(crate::ErrorKind::from)?;
+
+    let account = super::elyby::elyby_account_info(&token.access_token)
+        .await
+        .map_err(crate::ErrorKind::from)?;
+
+    let uuid = uuid::Uuid::parse_str(&account.uuid)
+        .map_err(|source| {
+            crate::ErrorKind::OtherError(format!(
+                "Invalid ely.by UUID: {source}"
+            ))
+        })?;
+    let now = Utc::now();
+    let expires = token.expires_at(now);
+
+    let credentials = Credentials {
+        offline_profile: MinecraftProfile {
+            id: uuid,
+            name: account.username,
+            ..MinecraftProfile::default()
+        },
+        access_token: token.access_token,
+        refresh_token: token.refresh_token,
+        expires,
+        active: true,
+        account_type: AccountType::ElyBy,
+    };
+
+    credentials.upsert(exec).await?;
     Ok(credentials)
 }
 
@@ -309,6 +391,10 @@ impl Credentials {
         &mut self,
         exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
     ) -> crate::Result<()> {
+        if self.account_type == AccountType::ElyBy {
+            return self.refresh_elyby(exec).await;
+        }
+
         // Use a margin of 5 minutes to give e.g. Minecraft and potentially
         // other operations that depend on a fresh token 5 minutes to complete
         // from now, and deal with some classes of clock skew
@@ -353,6 +439,28 @@ impl Credentials {
         Ok(())
     }
 
+    async fn refresh_elyby(
+        &mut self,
+        exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
+    ) -> crate::Result<()> {
+        let client_id = super::elyby::elyby_client_id();
+        let client_secret = super::elyby::elyby_client_secret();
+        let token = super::elyby::elyby_refresh_token(
+            &self.refresh_token,
+            &client_id,
+            client_secret.as_deref(),
+        )
+        .await
+        .map_err(crate::ErrorKind::from)?;
+
+        let expires = token.expires_at(Utc::now());
+        self.access_token = token.access_token;
+        self.refresh_token = token.refresh_token;
+        self.expires = expires;
+        self.upsert(exec).await?;
+        Ok(())
+    }
+
     /// Returns online profile data when the cached copy is still recent enough.
     #[tracing::instrument(skip(self))]
     pub async fn online_profile(&self) -> Option<Arc<MinecraftProfile>> {
@@ -389,6 +497,18 @@ impl Credentials {
         &self,
         cache_intent: OnlineProfileCacheIntent,
     ) -> Option<Arc<MinecraftProfile>> {
+        if self.account_type == AccountType::ElyBy
+            && let Ok(account) =
+                super::elyby::elyby_account_info(&self.access_token).await
+            && let Ok(id) = uuid::Uuid::parse_str(&account.uuid)
+        {
+            return Some(Arc::new(MinecraftProfile {
+                id,
+                name: account.username,
+                ..MinecraftProfile::default()
+            }));
+        }
+
         let max_age = cache_intent.max_age();
         let stale_profile = {
             let mut profile_cache = PROFILE_CACHE.lock().await;
