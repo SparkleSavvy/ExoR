@@ -31,6 +31,7 @@ pub mod connectivity;
 pub mod files;
 pub mod friends;
 pub mod worlds;
+pub mod api_cache;
 
 mod oauth_utils;
 

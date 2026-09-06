@@ -44,6 +44,8 @@ pub use self::minecraft_auth::*;
 
 pub mod elyby;
 
+pub mod api_cache;
+
 pub mod minecraft_skins;
 
 mod cache;
