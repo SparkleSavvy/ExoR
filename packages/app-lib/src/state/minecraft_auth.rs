@@ -43,6 +43,7 @@ pub enum MinecraftAuthStep {
     MinecraftToken,
     MinecraftEntitlements,
     MinecraftProfile,
+    ElyByAuthorize,
     ElyByToken,
     ElyByRefresh,
     ElyByAccountInfo,
@@ -105,6 +106,10 @@ pub enum MinecraftAuthenticationError {
     NoSessionId,
     #[error("Error reading user hash")]
     NoUserHash,
+    #[error("Failed to parse URL: {0}")]
+    InvalidUrl(String),
+    #[error("Invalid token")]
+    InvalidToken,
 }
 
 #[derive(Deserialize)]
@@ -1504,7 +1509,7 @@ async fn minecraft_entitlements(
 
 // auth utils
 #[tracing::instrument(skip(reqwest_request))]
-async fn auth_retry<F>(
+pub(crate) async fn auth_retry<F>(
     reqwest_request: impl Fn() -> F,
 ) -> Result<reqwest::Response, reqwest::Error>
 where
