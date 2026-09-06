@@ -117,6 +117,11 @@ pub struct State {
 
     pub restart_after_pending_update: AtomicBool,
 
+    /// Whether the launcher is currently operating in offline mode.
+    /// Read by cache, launch pre-flight, and content flows to fail fast with
+    /// friendly errors and serve cached data only.
+    pub offline: AtomicBool,
+
     pub(crate) pool: SqlitePool,
 
     pub(crate) file_watcher: FileWatcher,
@@ -317,6 +322,14 @@ impl State {
         LAUNCHER_STATE.initialized()
     }
 
+    pub fn is_offline(&self) -> bool {
+        self.offline.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    pub fn set_offline(&self, offline: bool) {
+        self.offline.store(offline, std::sync::atomic::Ordering::Relaxed);
+    }
+
     pub fn get_if_initialized() -> Option<Arc<Self>> {
         LAUNCHER_STATE.get().map(Arc::clone)
     }
@@ -396,6 +409,7 @@ impl State {
             process_manager,
             friends_socket,
             restart_after_pending_update: AtomicBool::new(false),
+            offline: AtomicBool::new(false),
             pool,
             file_watcher,
             // app_identifier,
