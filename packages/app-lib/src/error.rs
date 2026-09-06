@@ -98,6 +98,9 @@ pub enum ErrorKind {
     #[error("Error launching Minecraft: {0}")]
     LauncherError(String),
 
+    #[error("App is offline: {0}")]
+    OfflineError(String),
+
     #[error("Error fetching URL: {0}")]
     FetchError(#[from] reqwest::Error),
 
@@ -291,6 +294,22 @@ impl From<eyre::Report> for Error {
 impl ErrorKind {
     pub fn as_error(self) -> Error {
         self.into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn offline_error_display() {
+        let error = ErrorKind::OfflineError(
+            "App is offline; serving cached data only".to_string(),
+        );
+        assert_eq!(
+            error.to_string(),
+            "App is offline: App is offline; serving cached data only"
+        );
     }
 }
 

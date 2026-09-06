@@ -1113,6 +1113,13 @@ impl CachedEntry {
         }
 
         if !remaining_keys.is_empty() {
+            if crate::state::State::get().await?.is_offline() {
+                return Err(crate::ErrorKind::OfflineError(
+                    "App is offline; serving cached data only".to_string(),
+                )
+                .into());
+            }
+
             let res = Self::fetch_many(
                 type_,
                 remaining_keys.clone(),

@@ -155,6 +155,55 @@ pub async fn get_java_version_from_launch_context(
     Ok(java_version)
 }
 
+/// Returns true if the version-info JSON used by `download_version_info` at
+/// launch time already exists on disk (so an offline launch can proceed).
+async fn version_info_cached_locally(
+    state: &State,
+    game_version: &str,
+    loader: ModLoader,
+    loader_version: Option<&str>,
+) -> crate::Result<bool> {
+    let dirs = &state.directories;
+
+    if dirs
+        .version_dir(game_version)
+        .join(format!("{game_version}.json"))
+        .exists()
+    {
+        return Ok(true);
+    }
+
+    if loader == ModLoader::Vanilla {
+        return Ok(false);
+    }
+
+    let loader_version = match loader_version {
+        Some("latest") | Some("stable") | None => {
+            // Loader version is not pinned to a concrete id; look for any
+            // `{game_version}-{loader}` version-info json in the metadata dir.
+            let prefix = format!("{game_version}-");
+            if let Ok(entries) = std::fs::read_dir(dirs.versions_dir()) {
+                for entry in entries.flatten() {
+                    let name = entry.file_name().to_string_lossy().into_owned();
+                    if name.starts_with(&prefix)
+                        && entry.path().join(format!("{name}.json")).exists()
+                    {
+                        return Ok(true);
+                    }
+                }
+            }
+            return Ok(false);
+        }
+        Some(version) => version,
+    };
+
+    let combined = format!("{game_version}-{loader_version}");
+    Ok(dirs
+        .version_dir(&combined)
+        .join(format!("{combined}.json"))
+        .exists())
+}
+
 pub async fn get_loader_version_from_profile(
     game_version: &str,
     loader: ModLoader,
@@ -847,6 +896,22 @@ pub async fn launch_minecraft(
 
     let state = State::get().await?;
     let mut runtime_lease = state.content_store.runtime_cache_lock.read().await;
+
+    if state.is_offline()
+        && !version_info_cached_locally(
+            &state,
+            &content_set.game_version,
+            content_set.loader,
+            content_set.loader_version.as_deref(),
+        )
+        .await?
+    {
+        return Err(crate::ErrorKind::LauncherError(
+            "Cannot launch instance while offline: version data is not cached on this device"
+                .to_string(),
+        )
+        .into());
+    }
 
     let instance_path = get_instance_full_path(&instance.path).await?;
 
