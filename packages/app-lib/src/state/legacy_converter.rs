@@ -7,9 +7,9 @@ use crate::state::instances::{
     InstanceTabVisibility, playtime_to_storage,
 };
 use crate::state::{
-    CacheValue, CachedEntry, CachedFile, CachedFileHash, CachedFileUpdate,
-    Credentials, DefaultPage, DependencyType, DeviceToken, DeviceTokenKey,
-    DeviceTokenPair, FileType, Hooks, InstanceInstallStage,
+    AccountType, CacheValue, CachedEntry, CachedFile, CachedFileHash,
+    CachedFileUpdate, Credentials, DefaultPage, DependencyType, DeviceToken,
+    DeviceTokenKey, DeviceTokenPair, FileType, Hooks, InstanceInstallStage,
     LauncherFeatureVersion, MemorySettings, ModrinthCredentials,
     ReleaseChannel, TeamMember, Theme, VersionFile, WindowSize,
 };
@@ -128,6 +128,7 @@ where
                         name: legacy_credentials.username,
                         ..MinecraftProfile::default()
                     },
+                    account_type: AccountType::Microsoft,
                     access_token: legacy_credentials.access_token,
                     refresh_token: legacy_credentials.refresh_token,
                     expires: legacy_credentials.expires,

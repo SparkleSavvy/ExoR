@@ -43,6 +43,34 @@ pub enum MinecraftAuthStep {
     MinecraftToken,
     MinecraftEntitlements,
     MinecraftProfile,
+    ElyByToken,
+    ElyByRefresh,
+    ElyByAccountInfo,
+}
+
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum AccountType {
+    #[default]
+    Microsoft,
+    #[serde(rename = "elyby")]
+    ElyBy,
+}
+
+impl AccountType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Microsoft => "microsoft",
+            Self::ElyBy => "elyby",
+        }
+    }
+
+    pub fn from_str(value: &str) -> Self {
+        match value {
+            "elyby" => Self::ElyBy,
+            _ => Self::Microsoft,
+        }
+    }
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -101,6 +129,7 @@ impl MinecraftAuthenticationError {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MinecraftLoginFlow {
+    pub account_type: AccountType,
     pub verifier: String,
     pub challenge: String,
     pub session_id: String,
@@ -128,6 +157,7 @@ pub async fn login_begin(
     {
         Ok((session_id, redirect_uri)) => {
             return Ok(MinecraftLoginFlow {
+                account_type: AccountType::Microsoft,
                 verifier,
                 challenge,
                 session_id,
@@ -170,6 +200,7 @@ pub async fn login_finish(
 
     let mut credentials = Credentials {
         offline_profile: MinecraftProfile::default(),
+        account_type: AccountType::Microsoft,
         access_token: minecraft_token.access_token,
         refresh_token: oauth_token.value.refresh_token,
         expires: oauth_token.date
@@ -206,6 +237,8 @@ pub struct Credentials {
     /// such as skins or capes is available.
     #[serde(rename = "profile")]
     pub offline_profile: MinecraftProfile,
+    #[serde(default)]
+    pub account_type: AccountType,
     pub access_token: String,
     pub refresh_token: String,
     pub expires: DateTime<Utc>,
@@ -519,7 +552,7 @@ impl Credentials {
         let res = sqlx::query!(
             "
             SELECT
-                uuid, active, username, access_token, refresh_token, expires
+                uuid, active, username, access_token, refresh_token, expires, account_type
             FROM minecraft_users
             WHERE active = TRUE
             "
@@ -535,6 +568,7 @@ impl Credentials {
                         name: x.username,
                         ..MinecraftProfile::default()
                     },
+                    account_type: AccountType::from_str(&x.account_type),
                     access_token: x.access_token,
                     refresh_token: x.refresh_token,
                     expires: Utc
@@ -556,7 +590,7 @@ impl Credentials {
         let res = sqlx::query!(
             "
             SELECT
-                uuid, active, username, access_token, refresh_token, expires
+                uuid, active, username, access_token, refresh_token, expires, account_type
             FROM minecraft_users
             "
         )
@@ -569,6 +603,7 @@ impl Credentials {
                     name: x.username,
                     ..MinecraftProfile::default()
                 },
+                account_type: AccountType::from_str(&x.account_type),
                 access_token: x.access_token,
                 refresh_token: x.refresh_token,
                 expires: Utc
@@ -597,6 +632,7 @@ impl Credentials {
         let profile = self.maybe_online_profile().await;
         let expires = self.expires.timestamp();
         let uuid = profile.id.as_hyphenated().to_string();
+        let account_type = self.account_type.as_str();
 
         if self.active {
             sqlx::query!(
@@ -611,14 +647,15 @@ impl Credentials {
 
         sqlx::query!(
             "
-            INSERT INTO minecraft_users (uuid, active, username, access_token, refresh_token, expires)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO minecraft_users (uuid, active, username, access_token, refresh_token, expires, account_type)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (uuid) DO UPDATE SET
                 active = $2,
                 username = $3,
                 access_token = $4,
                 refresh_token = $5,
-                expires = $6
+                expires = $6,
+                account_type = $7
             ",
             uuid,
             self.active,
@@ -626,6 +663,7 @@ impl Credentials {
             self.access_token,
             self.refresh_token,
             expires,
+            account_type,
         )
             .execute(exec)
             .await?;
@@ -682,8 +720,9 @@ impl Serialize for Credentials {
                 ),
         };
 
-        let mut ser = serializer.serialize_struct("Credentials", 5)?;
+        let mut ser = serializer.serialize_struct("Credentials", 6)?;
         ser.serialize_field("profile", &*profile)?;
+        ser.serialize_field("account_type", &self.account_type)?;
         ser.serialize_field("access_token", &self.access_token)?;
         ser.serialize_field("refresh_token", &self.refresh_token)?;
         ser.serialize_field("expires", &self.expires)?;
@@ -1639,4 +1678,26 @@ fn generate_oauth_challenge() -> String {
 
     let bytes: Vec<u8> = (0..64).map(|_| rng.r#gen::<u8>()).collect();
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AccountType;
+
+    #[test]
+    fn account_type_as_str_roundtrip() {
+        assert_eq!(AccountType::Microsoft.as_str(), "microsoft");
+        assert_eq!(AccountType::ElyBy.as_str(), "elyby");
+        assert_eq!(AccountType::from_str("elyby"), AccountType::ElyBy);
+        assert_eq!(AccountType::from_str("microsoft"), AccountType::Microsoft);
+        assert_eq!(AccountType::from_str("bogus"), AccountType::Microsoft);
+    }
+
+    #[test]
+    fn account_type_serde_roundtrip() {
+        let json = serde_json::to_string(&AccountType::ElyBy).unwrap();
+        assert_eq!(json, "\"elyby\"");
+        let back: AccountType = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, AccountType::ElyBy);
+    }
 }
