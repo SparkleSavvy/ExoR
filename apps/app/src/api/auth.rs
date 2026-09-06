@@ -29,8 +29,14 @@ pub async fn check_reachable() -> Result<()> {
 #[tauri::command]
 pub async fn login<R: Runtime>(
     app: tauri::AppHandle<R>,
+    flow: String,
 ) -> Result<Option<Credentials>> {
-    let flow = minecraft_auth::begin_login().await?;
+    let is_elyby = flow == "elyby";
+    let login_flow = if is_elyby {
+        minecraft_auth::elyby_begin_login().await?
+    } else {
+        minecraft_auth::begin_login().await?
+    };
 
     let start = Utc::now();
 
@@ -41,14 +47,14 @@ pub async fn login<R: Runtime>(
     let window = tauri::WebviewWindowBuilder::new(
         &app,
         "signin",
-        tauri::WebviewUrl::External(flow.auth_request_uri.parse().map_err(
-            |_| {
+        tauri::WebviewUrl::External(
+            login_flow.auth_request_uri.parse().map_err(|_| {
                 theseus::ErrorKind::OtherError(
                     "Error parsing auth redirect URL".to_string(),
                 )
                 .as_error()
-            },
-        )?),
+            })?,
+        ),
     )
     .title("Sign into Modrinth")
     .always_on_top(true)
@@ -60,6 +66,12 @@ pub async fn login<R: Runtime>(
 
     window.request_user_attention(Some(UserAttentionType::Critical))?;
 
+    let redirect_prefix = if is_elyby {
+        "https://elyrinth-modrinth/oauth"
+    } else {
+        "https://login.live.com/oauth20_desktop.srf"
+    };
+
     while (Utc::now() - start) < Duration::minutes(10) {
         if window.title().is_err() {
             // user closed window, cancelling flow
@@ -69,12 +81,13 @@ pub async fn login<R: Runtime>(
         if window
             .url()?
             .as_str()
-            .starts_with("https://login.live.com/oauth20_desktop.srf")
+            .starts_with(redirect_prefix)
             && let Some((_, code)) =
                 window.url()?.query_pairs().find(|x| x.0 == "code")
         {
             window.close()?;
-            let val = minecraft_auth::finish_login(&code.clone(), flow).await?;
+            let val =
+                minecraft_auth::finish_login(&code.clone(), login_flow).await?;
 
             return Ok(Some(val));
         }

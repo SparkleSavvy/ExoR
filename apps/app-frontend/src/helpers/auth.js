@@ -25,12 +25,14 @@ export async function check_reachable() {
  * Authenticate a user with Hydra - part 1.
  * This begins the authentication flow quasi-synchronously.
  *
+ * @param {string} [flow='microsoft'] - Which account provider to use: 'microsoft' or 'elyby'.
+ *
  * @returns {Promise<DeviceLoginSuccess>} A DeviceLoginSuccess object with two relevant fields:
  * @property {string} verification_uri - The URL to go to complete the flow.
  * @property {string} user_code - The code to enter on the verification_uri page.
  */
-export async function login() {
-	return await invoke('plugin:auth|login')
+export async function login(flow = 'microsoft') {
+	return await invoke('plugin:auth|login', { flow })
 }
 
 /**

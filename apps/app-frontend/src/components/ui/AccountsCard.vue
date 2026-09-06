@@ -4,10 +4,15 @@
 		class="flex flex-col gap-3 bg-button-bg border border-solid border-surface-5 rounded-xl p-3 mt-2"
 	>
 		<span>{{ formatMessage(messages.notSignedIn) }}</span>
-		<Button type="colored" color="brand" :disabled="loginDisabled" @click="login()">
+		<Button type="colored" color="brand" :disabled="loginDisabled" @click="login('microsoft')">
 			<LogInIcon v-if="!loginDisabled" />
 			<SpinnerIcon v-else class="animate-spin" />
 			{{ formatMessage(messages.signInToMinecraft) }}
+		</Button>
+		<Button type="outlined" color="brand" :disabled="loginDisabled" @click="login('elyby')">
+			<LogInIcon v-if="!loginDisabled" />
+			<SpinnerIcon v-else class="animate-spin" />
+			{{ formatMessage(messages.signInWithElyby) }}
 		</Button>
 	</div>
 	<Accordion
@@ -75,10 +80,19 @@
 					v-if="accounts.length > 0"
 					class="w-full !bg-button-bg !text-primary ![box-shadow:var(--shadow-button)]"
 					:disabled="loginDisabled"
-					@click="login()"
+					@click="login('microsoft')"
 				>
 					<PlusIcon />
 					{{ formatMessage(messages.addAccount) }}
+				</Button>
+				<Button
+					v-if="accounts.length > 0"
+					class="w-full !bg-button-bg !text-primary ![box-shadow:var(--shadow-button)]"
+					:disabled="loginDisabled"
+					@click="login('elyby')"
+				>
+					<PlusIcon />
+					{{ formatMessage(messages.addElybyAccount) }}
 				</Button>
 			</div>
 		</div>
@@ -235,9 +249,9 @@ async function setAccount(account: MinecraftCredential) {
 	emit('change')
 }
 
-async function login() {
+async function login(flow = 'microsoft') {
 	loginDisabled.value = true
-	const loggedIn = await login_flow().catch(handleSevereError)
+	const loggedIn = await login_flow(flow).catch(handleSevereError)
 
 	if (loggedIn) {
 		await setAccount(loggedIn)
@@ -288,6 +302,14 @@ const messages = defineMessages({
 	signInToMinecraft: {
 		id: 'minecraft-account.sign-in',
 		defaultMessage: 'Sign in to Minecraft',
+	},
+	signInWithElyby: {
+		id: 'minecraft-account.sign-in-elyby',
+		defaultMessage: 'Sign in with ely.by',
+	},
+	addElybyAccount: {
+		id: 'minecraft-account.add-elyby-account',
+		defaultMessage: 'Add ely.by account',
 	},
 })
 </script>
