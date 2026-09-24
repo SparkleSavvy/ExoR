@@ -49,7 +49,9 @@ pub enum MinecraftAuthStep {
     ElyByAccountInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, Default)]
+#[derive(
+    Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, Default,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum AccountType {
     #[default]
@@ -289,12 +291,9 @@ async fn finish_elyby_login(
         .await
         .map_err(crate::ErrorKind::from)?;
 
-    let uuid = uuid::Uuid::parse_str(&account.uuid)
-        .map_err(|source| {
-            crate::ErrorKind::OtherError(format!(
-                "Invalid ely.by UUID: {source}"
-            ))
-        })?;
+    let uuid = uuid::Uuid::parse_str(&account.uuid).map_err(|source| {
+        crate::ErrorKind::OtherError(format!("Invalid ely.by UUID: {source}"))
+    })?;
     let now = Utc::now();
     let expires = token.expires_at(now);
 

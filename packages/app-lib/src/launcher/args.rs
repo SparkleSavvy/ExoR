@@ -617,22 +617,20 @@ mod tests {
     #[test]
     fn elyby_uses_authlib_injector() {
         let args = invoke(AccountType::ElyBy);
-        assert!(args
-            .iter()
-            .any(|a| a.starts_with("-javaagent:") && a.contains("authserver.ely.by")));
-        assert!(args
-            .iter()
-            .any(|a| a == "-Dauthlibinjector.side=client"));
+        assert!(
+            args.iter().any(|a| a.starts_with("-javaagent:")
+                && a.contains("authserver.ely.by"))
+        );
+        assert!(args.iter().any(|a| a == "-Dauthlibinjector.side=client"));
     }
 
     #[test]
     fn microsoft_does_not_use_authlib_injector() {
         let args = invoke(AccountType::Microsoft);
-        assert!(!args
-            .iter()
-            .any(|a| a.starts_with("-javaagent:") && a.contains("authserver.ely.by")));
-        assert!(!args
-            .iter()
-            .any(|a| a == "-Dauthlibinjector.side=client"));
+        assert!(
+            !args.iter().any(|a| a.starts_with("-javaagent:")
+                && a.contains("authserver.ely.by"))
+        );
+        assert!(!args.iter().any(|a| a == "-Dauthlibinjector.side=client"));
     }
 }

@@ -91,8 +91,9 @@ mod tests {
         let options = sqlx::sqlite::SqliteConnectOptions::new()
             .in_memory(true)
             .create_if_missing(true);
-        let mut conn =
-            sqlx::sqlite::SqliteConnection::connect_with(&options).await.unwrap();
+        let mut conn = sqlx::sqlite::SqliteConnection::connect_with(&options)
+            .await
+            .unwrap();
         sqlx::query(
             "CREATE TABLE api_cache (namespace TEXT NOT NULL, cache_key TEXT NOT NULL, data JSONB NOT NULL, updated INTEGER NOT NULL, PRIMARY KEY (namespace, cache_key))",
         )
@@ -101,9 +102,14 @@ mod tests {
         .unwrap();
 
         assert!(load(&mut conn, "search", "q=test").await.unwrap().is_none());
-        save(&mut conn, "search", "q=test", &serde_json::json!({ "hits": [] }))
-            .await
-            .unwrap();
+        save(
+            &mut conn,
+            "search",
+            "q=test",
+            &serde_json::json!({ "hits": [] }),
+        )
+        .await
+        .unwrap();
         assert!(load(&mut conn, "search", "q=test").await.unwrap().is_some());
         assert_eq!(keys(&mut conn, "search").await.unwrap(), vec!["q=test"]);
         delete(&mut conn, "search", "q=test").await.unwrap();

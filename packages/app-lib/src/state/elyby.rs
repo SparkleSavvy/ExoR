@@ -4,16 +4,20 @@ use serde::Deserialize;
 use std::collections::HashMap;
 
 use super::minecraft_auth::{
-    auth_retry, MinecraftAuthenticationError, MinecraftAuthStep,
+    MinecraftAuthStep, MinecraftAuthenticationError, auth_retry,
 };
 use crate::util::fetch::INSECURE_REQWEST_CLIENT;
 
 pub const ELYBY_OAUTH_AUTHORIZE_URL: &str = "https://account.ely.by/oauth2/v1";
-pub const ELYBY_OAUTH_TOKEN_URL: &str = "https://account.ely.by/api/oauth2/v1/token";
-pub const ELYBY_ACCOUNT_INFO_URL: &str = "https://account.ely.by/api/account/v1/info";
-pub const ELYBY_SESSION_JOIN_URL: &str = "https://sessionserver.ely.by/session/minecraft/join";
+pub const ELYBY_OAUTH_TOKEN_URL: &str =
+    "https://account.ely.by/api/oauth2/v1/token";
+pub const ELYBY_ACCOUNT_INFO_URL: &str =
+    "https://account.ely.by/api/account/v1/info";
+pub const ELYBY_SESSION_JOIN_URL: &str =
+    "https://sessionserver.ely.by/session/minecraft/join";
 
-pub const ELYBY_SCOPE: &str = "account_info minecraft_server_session offline_access";
+pub const ELYBY_SCOPE: &str =
+    "account_info minecraft_server_session offline_access";
 const ELYBY_CLIENT_ID: &str = "elyrinth2";
 pub const ELYBY_DEFAULT_REDIRECT_URI: &str = "https://elyrinth-modrinth/oauth";
 
@@ -39,8 +43,10 @@ pub fn elyby_authorize_url(
     state: &str,
     challenge: Option<&str>,
 ) -> Result<url::Url, MinecraftAuthenticationError> {
-    let mut url = url::Url::parse(ELYBY_OAUTH_AUTHORIZE_URL)
-        .map_err(|source| MinecraftAuthenticationError::InvalidUrl(source.to_string()))?;
+    let mut url =
+        url::Url::parse(ELYBY_OAUTH_AUTHORIZE_URL).map_err(|source| {
+            MinecraftAuthenticationError::InvalidUrl(source.to_string())
+        })?;
     url.query_pairs_mut()
         .append_pair("client_id", client_id)
         .append_pair("redirect_uri", redirect_uri)
@@ -91,7 +97,10 @@ async fn elyby_token_request(
                 .send()
         })
         .await
-        .map_err(|source| MinecraftAuthenticationError::Request { source, step })?;
+        .map_err(|source| MinecraftAuthenticationError::Request {
+            source,
+            step,
+        })?;
         status = res.status();
         text = res.text().await.map_err(|source| {
             MinecraftAuthenticationError::Request { source, step }
@@ -99,7 +108,10 @@ async fn elyby_token_request(
     }
     serde_json::from_str(&text).map_err(|source| {
         MinecraftAuthenticationError::DeserializeResponse {
-            source, raw: text, step, status_code: status,
+            source,
+            raw: text,
+            step,
+            status_code: status,
         }
     })
 }
@@ -168,7 +180,9 @@ pub async fn elyby_account_info(
 
     serde_json::from_str(&text).map_err(|source| {
         MinecraftAuthenticationError::DeserializeResponse {
-            source, raw: text, step: MinecraftAuthStep::ElyByAccountInfo,
+            source,
+            raw: text,
+            step: MinecraftAuthStep::ElyByAccountInfo,
             status_code: status,
         }
     })
@@ -187,7 +201,7 @@ mod tests {
             Some("challenge"),
         )
         .unwrap();
-        assert_eq!(url.as_str().starts_with("https://account.ely.by/oauth2/v1"), true);
+        assert!(url.as_str().starts_with("https://account.ely.by/oauth2/v1"));
         let pairs: Vec<(String, String)> = url
             .query_pairs()
             .map(|(k, v)| (k.into_owned(), v.into_owned()))

@@ -178,7 +178,7 @@ async fn version_info_cached_locally(
     }
 
     let loader_version = match loader_version {
-        Some("latest") | Some("stable") | None => {
+        Some("latest" | "stable") | None => {
             // Loader version is not pinned to a concrete id; look for any
             // `{game_version}-{loader}` version-info json in the metadata dir.
             let prefix = format!("{game_version}-");

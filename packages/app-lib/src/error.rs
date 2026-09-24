@@ -297,6 +297,8 @@ impl ErrorKind {
     }
 }
 
+pub type Result<T> = core::result::Result<T, Error>;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -312,5 +314,3 @@ mod tests {
         );
     }
 }
-
-pub type Result<T> = core::result::Result<T, Error>;

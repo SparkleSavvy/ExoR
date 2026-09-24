@@ -14,7 +14,9 @@ pub async fn check_reachable() -> crate::Result<()> {
         .as_ref()
         .filter(|user| user.account_type == AccountType::ElyBy)
         .map(|_| "https://sessionserver.ely.by/session/minecraft/hasJoined")
-        .unwrap_or("https://sessionserver.mojang.com/session/minecraft/hasJoined");
+        .unwrap_or(
+            "https://sessionserver.mojang.com/session/minecraft/hasJoined",
+        );
     let resp = INSECURE_REQWEST_CLIENT.get(url).send().await?;
     if resp.status() == StatusCode::NO_CONTENT {
         return Ok(());

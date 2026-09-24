@@ -1,7 +1,6 @@
 //! API for interacting with Theseus
-pub mod cache;
 pub mod api_cache;
-pub mod offline_queue;
+pub mod cache;
 pub mod friends;
 pub mod handler;
 pub mod instance;
@@ -11,6 +10,7 @@ pub mod metadata;
 pub mod minecraft_auth;
 pub mod minecraft_skins;
 pub mod mr_auth;
+pub mod offline_queue;
 pub mod onboarding_checklist;
 pub mod pack;
 pub mod process;

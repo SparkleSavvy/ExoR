@@ -331,7 +331,8 @@ impl State {
     }
 
     pub fn set_offline(&self, offline: bool) {
-        self.offline.store(offline, std::sync::atomic::Ordering::Relaxed);
+        self.offline
+            .store(offline, std::sync::atomic::Ordering::Relaxed);
     }
 
     pub fn get_if_initialized() -> Option<Arc<Self>> {
