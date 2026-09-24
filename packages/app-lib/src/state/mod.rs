@@ -46,6 +46,8 @@ pub mod elyby;
 
 pub mod api_cache;
 
+pub mod offline_queue;
+
 pub mod minecraft_skins;
 
 mod cache;

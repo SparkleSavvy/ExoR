@@ -32,6 +32,7 @@ pub mod files;
 pub mod friends;
 pub mod worlds;
 pub mod api_cache;
+pub mod queue;
 
 mod oauth_utils;
 

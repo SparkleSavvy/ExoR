@@ -1,6 +1,7 @@
 //! API for interacting with Theseus
 pub mod cache;
 pub mod api_cache;
+pub mod offline_queue;
 pub mod friends;
 pub mod handler;
 pub mod instance;
