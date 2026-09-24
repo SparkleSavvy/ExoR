@@ -1,0 +1,57 @@
+name: Watch upstream
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # nightly UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: watch-upstream
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/modrinth/code.git
+          git fetch upstream main
+
+      - name: Check divergence
+        id: divergence
+        run: |
+          BEHIND="$(git rev-list --count HEAD..upstream/main)"
+          echo "behind=$BEHIND" >> "$GITHUB_OUTPUT"
+
+      - name: Regenerate alt-auth patches and open sync PR
+        if: steps.divergence.outputs.behind != '0'
+        run: |
+          DATE="$(date +%Y%m%d)"
+          BRANCH="sync/upstream-$DATE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git switch -c "$BRANCH" origin/main
+          scripts/generate-patches.sh upstream/main
+          git add patches/alt-auth
+          git diff --cached --quiet || git commit -m "chore: regenerate alt-auth patches against upstream/main"
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore: sync upstream (modrinth/code)" \
+            --body "Upstream \`main\` advanced by ${{ steps.divergence.outputs.behind }} commit(s). The alt-auth patch series has been regenerated against the new base; review, then rebase \`main\` with \`scripts/sync-upstream.sh --rebase\`." \
+            || true
+          git push -u origin "$BRANCH"
+        env:
+          GH_TOKEN: ${{ github.token }}
