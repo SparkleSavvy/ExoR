@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { inject, onBeforeUnmount, onMounted } from 'vue'
 
 import { useAppSettings } from '@/composables/use-app-settings.ts'
+import { useConnectivity } from '@/composables/useConnectivity.ts'
 import {
 	type AppSettings,
 	appSettingsKeys,
@@ -19,7 +20,6 @@ import {
 	get,
 	set,
 } from '@/helpers/settings.ts'
-import { useConnectivity } from '@/composables/useConnectivity.ts'
 import { appSettingsModalContextKey } from '@/providers/app-settings-modal'
 
 const appSettings = useAppSettings()

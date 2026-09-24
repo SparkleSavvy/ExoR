@@ -318,7 +318,7 @@
     "message": "Sync"
   },
   "app.content.sync-packs-override": {
-    "message": "Turn off the pack syncing override in this instanceвЂ™s settings first."
+    "message": "Turn off the pack syncing override in this instance’s settings first."
   },
   "app.content.sync-resource-packs-disabled": {
     "message": "Turn on resource pack syncing in app settings first."
@@ -333,7 +333,7 @@
     "message": "Cancel installation"
   },
   "app.download-manager.canceling": {
-    "message": "Canceling installationвЂ¦"
+    "message": "Canceling installation…"
   },
   "app.download-manager.clear-all": {
     "message": "Clear all"
@@ -1272,7 +1272,7 @@
     "message": "Block user"
   },
   "app.modal.install-to-play.content-you-are-reporting": {
-    "message": "Instance youвЂ™re reporting"
+    "message": "Instance you’re reporting"
   },
   "app.modal.install-to-play.delete-instance": {
     "message": "Delete instance"
@@ -1335,10 +1335,10 @@
     "message": "Shared instance content"
   },
   "app.modal.install-to-play.shared-instance-unknown-files-description": {
-    "message": "This shared instance contains files that arenвЂ™t published on Modrinth. We strongly recommend only installing files from sources you trust."
+    "message": "This shared instance contains files that aren’t published on Modrinth. We strongly recommend only installing files from sources you trust."
   },
   "app.modal.install-to-play.unknown-files-description": {
-    "message": "This server modpack contains files that arenвЂ™t published on Modrinth. We strongly recommend only installing files from sources you trust."
+    "message": "This server modpack contains files that aren’t published on Modrinth. We strongly recommend only installing files from sources you trust."
   },
   "app.modal.install-to-play.unknown-files-warning": {
     "message": "Unknown files warning"
@@ -1359,7 +1359,7 @@
     "message": "Removed"
   },
   "app.modal.update-to-play.server-modpack-unknown-files-description": {
-    "message": "This server modpack update contains files that arenвЂ™t published on Modrinth. We strongly recommend only installing files from sources you trust."
+    "message": "This server modpack update contains files that aren’t published on Modrinth. We strongly recommend only installing files from sources you trust."
   },
   "app.modal.update-to-play.shared-instance-added-label": {
     "message": "Added"
@@ -1368,7 +1368,7 @@
     "message": "Removed"
   },
   "app.modal.update-to-play.shared-instance-unknown-files-description": {
-    "message": "This shared instance update contains files that arenвЂ™t published on Modrinth. We strongly recommend only installing files from sources you trust."
+    "message": "This shared instance update contains files that aren’t published on Modrinth. We strongly recommend only installing files from sources you trust."
   },
   "app.modal.update-to-play.update-required": {
     "message": "Update required"
@@ -1599,7 +1599,7 @@
     "message": "No matching screenshots"
   },
   "app.screenshots.preview.instance-and-date": {
-    "message": "{instance} В· {date}"
+    "message": "{instance} · {date}"
   },
   "app.screenshots.search": {
     "message": "Search"
@@ -1929,7 +1929,7 @@
     "message": "Some of your instances cannot use this setting"
   },
   "app.settings.game-options.compatibility.reason.launcher-controlled": {
-    "message": "This setting is managed by ModrinthвЂ™s launch settings."
+    "message": "This setting is managed by Modrinth’s launch settings."
   },
   "app.settings.game-options.custom-value.placeholder": {
     "message": "Enter a value"
@@ -2052,7 +2052,7 @@
     "message": "Unknown key"
   },
   "app.settings.game-options.keybind.listen": {
-    "message": "Press a keyвЂ¦"
+    "message": "Press a key…"
   },
   "app.settings.game-options.keybind.listening-status": {
     "message": "Listening for a key or mouse button. Press Escape to clear this binding."
@@ -2856,7 +2856,7 @@
     "message": "Freed {size} of disk space."
   },
   "app.settings.resource-management.store.clearing": {
-    "message": "ClearingвЂ¦"
+    "message": "Clearing…"
   },
   "app.settings.resource-management.store.description": {
     "message": "Save space by reusing game installs, mods and packs across your instances."
@@ -2880,7 +2880,7 @@
     "message": "Check for missing or damaged files and repair them."
   },
   "app.settings.resource-management.store.repairing": {
-    "message": "Verifying and repairingвЂ¦"
+    "message": "Verifying and repairing…"
   },
   "app.settings.resource-management.store.shared.label": {
     "message": "Shared"
@@ -3015,7 +3015,7 @@
     "message": "Sync all"
   },
   "app.settings.synced-options.game-settings.load-failed": {
-    "message": "We couldnвЂ™t load your game settings."
+    "message": "We couldn’t load your game settings."
   },
   "app.settings.synced-options.game-settings.loading": {
     "message": "Loading settings..."
@@ -3453,7 +3453,7 @@
     "message": "Synced data packs"
   },
   "app.synced-packs.empty": {
-    "message": "Add packs from an instanceвЂ™s content page to start syncing."
+    "message": "Add packs from an instance’s content page to start syncing."
   },
   "app.synced-packs.load-failed": {
     "message": "Packs could not be loaded. Try refreshing."
@@ -4500,7 +4500,7 @@
     "message": "Sign in to a Microsoft account"
   },
   "minecraft-required.dont-have-account": {
-    "message": "DonвЂ™t have an account?"
+    "message": "Don’t have an account?"
   },
   "minecraft-required.get-minecraft": {
     "message": "Get Minecraft"

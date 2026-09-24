@@ -17,12 +17,7 @@
 			<span class="text-sm text-contrast"> {{ formatMessage(messages.offline) }} </span>
 		</div>
 		<div v-if="queueItems.length > 0" class="flex items-center gap-1">
-			<Dropdown
-				placement="bottom-end"
-				:triggers="['click']"
-				:hide-triggers="['click']"
-				@show="void refreshQueue()"
-			>
+			<FloatingMenu placement="bottom-end" @open="void refreshQueue()">
 				<IconButton
 					v-tooltip="formatMessage(messages.pendingOfflineActions)"
 					type="quiet"
@@ -67,7 +62,7 @@
 						</button>
 					</div>
 				</template>
-			</Dropdown>
+			</FloatingMenu>
 			<span class="flex items-center rounded-md bg-surface-5 px-1.5 py-0.5 text-xs text-secondary">
 				{{ queueItems.length }}
 			</span>

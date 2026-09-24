@@ -1,6 +1,6 @@
 import type { Labrinth } from '@modrinth/api-client'
-import type { AbstractPopupNotificationManager } from '@modrinth/ui'
-import {
+import type {
+	AbstractPopupNotificationManager,
 	type ContentInstallInstance,
 	type ContentInstallProjectInfo,
 	type ContentItem,
