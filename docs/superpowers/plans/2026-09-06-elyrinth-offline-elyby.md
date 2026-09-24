@@ -1170,11 +1170,11 @@ The frontend owns the reactive offline state and the UX: auto-detection, manual 
 
 ### Task list
 
-- [ ] `apps/app-frontend/src/composables/useConnectivity.ts` (or `store/offline.ts` per repo convention): reactive `isOffline`, `check()`, listeners for `online`/`offline` events, calls `plugin:connectivity|check` on app start and on `window.ononline`.
-- [ ] Browsing fallback: connect `OfflineCacheFeature`'s `isOffline` to the composable (Task 9 wire-up).
-- [ ] Intercept install/update in `apps/app-frontend/src/providers/content-install.ts`: when `isOffline`, instead of launching the install flow, `invoke('plugin:queue|enqueue', { kind, state })` and toast "Действие добавлено в очередь офлайн".
-- [ ] Queue UI: a "Pending offline actions" section (e.g. in a sidebar/location fitting the existing layout) listing queue items via `plugin:queue|list`, with "Retry" and "Remove"; auto-run on reconnect.
-- [ ] Offline Mode toggle in settings: switch bound to `set_offline`.
+- [x] `apps/app-frontend/src/composables/useConnectivity.ts` (or `store/offline.ts` per repo convention): reactive `isOffline`, `check()`, listeners for `online`/`offline` events, calls `plugin:connectivity|check` on app start and on `window.ononline`.
+- [x] Browsing fallback: connect `OfflineCacheFeature`'s `isOffline` to the composable (Task 9 wire-up).
+- [x] Intercept install/update in `apps/app-frontend/src/providers/content-install.ts`: when `isOffline`, instead of launching the install flow, `invoke('plugin:queue|enqueue', { kind, state })` and toast "Действие добавлено в очередь офлайн".
+- [x] Queue UI: a "Pending offline actions" section (e.g. in a sidebar/location fitting the existing layout) listing queue items via `plugin:queue|list`, with "Retry" and "Remove"; auto-run on reconnect.
+- [x] Offline Mode toggle in settings: switch bound to `set_offline`.
 
 ### Code changes
 
@@ -1240,16 +1240,16 @@ Verify everything compiles/test-passes, then run the repo's control commands.
 
 ### Task list
 
-- [ ] `cargo test -p theseus` (Rust: account type, ely.by parse, api_cache, offline_queue, args tests).
-- [ ] `cargo check --manifest-path apps/app/Cargo.toml` (Tauri seams).
-- [ ] `pnpm --filter @modrinth/api-client test` (OfflineCacheFeature vitest) — confirm script name first.
-- [ ] `pnpm prepr:frontend:app` (lints, types, tests for app frontend + libs; AGENTS.md).
+- [x] `cargo test -p theseus` (Rust: account type, ely.by parse, api_cache, offline_queue, args tests).
+- [x] `cargo check --manifest-path apps/app/Cargo.toml` (Tauri seams).
+- [x] `pnpm --filter @modrinth/api-client test` (OfflineCacheFeature vitest) — confirm script name first.
+- [x] `pnpm prepr:frontend:app` (lints, types, tests for app frontend + libs; AGENTS.md).
 - [ ] Manual spot checks: ely.by sign-in (needs `.env.local` with credentials), offline launch of an installed instance, offline browse of a previously-loaded project, install-while-offline queued + auto-run on reconnect, JVM args show authlib-injector for ely.by launch.
-- [ ] Create `.env.local` template documentation entry (ely.by client id/secret) — NOT a committed secret file.
+- [x] Create `.env.local` template documentation entry (ely.by client id/secret) — NOT a committed secret file.
 - [ ] Say you're done: show git status, staged files, and the diff stat; open a PR only when the user asks.
 
 ### Final checklist
 
-- [ ] No `ELYBY_CLIENT_SECRET` anywhere in tracked files.
-- [ ] `.repowise/` still untracked.
-- [ ] Design doc + plan committed; implementation commits in `feat:` style.
+- [x] No `ELYBY_CLIENT_SECRET` anywhere in tracked files.
+- [x] `.repowise/` still untracked.
+- [x] Design doc + plan committed; implementation commits in `feat:` style.
