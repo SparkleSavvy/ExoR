@@ -231,6 +231,9 @@ importers:
       vite:
         specifier: ^8.0.0
         version: 8.0.3(@types/node@24.12.2)(esbuild@0.27.3)(jiti@1.21.7)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@24.12.2)(jsdom@26.1.0(canvas@3.2.3))(vite@8.0.3(@types/node@24.12.2)(esbuild@0.27.3)(jiti@1.21.7)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2))
       vue-component-type-helpers:
         specifier: ^3.1.8
         version: 3.2.4
@@ -13526,7 +13529,7 @@ snapshots:
       detect-libc: 2.1.2
       is-glob: 4.0.3
       node-addon-api: 7.1.1
-      picomatch: 4.0.3
+      picomatch: 4.0.4
     optionalDependencies:
       '@parcel/watcher-android-arm64': 2.5.6
       '@parcel/watcher-darwin-arm64': 2.5.6
@@ -13745,7 +13748,7 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.8
       estree-walker: 2.0.2
-      picomatch: 4.0.3
+      picomatch: 4.0.4
     optionalDependencies:
       rollup: 4.57.1
 
@@ -15005,6 +15008,14 @@ snapshots:
       magic-string: 0.30.21
     optionalDependencies:
       vite: 8.0.3(@types/node@24.12.2)(esbuild@0.27.2)(jiti@2.6.1)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)
+
+  '@vitest/mocker@4.1.11(vite@8.0.3(@types/node@24.12.2)(esbuild@0.27.3)(jiti@1.21.7)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.1.11
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 8.0.3(@types/node@24.12.2)(esbuild@0.27.3)(jiti@1.21.7)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)
 
   '@vitest/pretty-format@3.2.4':
     dependencies:
@@ -17123,10 +17134,6 @@ snapshots:
   fastq@1.20.1:
     dependencies:
       reusify: 1.1.0
-
-  fdir@6.5.0(picomatch@4.0.3):
-    optionalDependencies:
-      picomatch: 4.0.3
 
   fdir@6.5.0(picomatch@4.0.4):
     optionalDependencies:
@@ -21518,8 +21525,8 @@ snapshots:
   vite@6.4.1(@types/node@24.12.2)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2):
     dependencies:
       esbuild: 0.25.12
-      fdir: 6.5.0(picomatch@4.0.3)
-      picomatch: 4.0.3
+      fdir: 6.5.0(picomatch@4.0.4)
+      picomatch: 4.0.4
       postcss: 8.5.6
       rollup: 4.57.1
       tinyglobby: 0.2.15
@@ -21638,6 +21645,35 @@ snapshots:
       tinyglobby: 0.2.15
       tinyrainbow: 3.1.1
       vite: 8.0.3(@types/node@24.12.2)(esbuild@0.27.2)(jiti@2.6.1)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)
+      why-is-node-running: 2.3.0
+    optionalDependencies:
+      '@opentelemetry/api': 1.9.0
+      '@types/node': 24.12.2
+      jsdom: 26.1.0(canvas@3.2.3)
+    transitivePeerDependencies:
+      - msw
+
+  vitest@4.1.11(@opentelemetry/api@1.9.0)(@types/node@24.12.2)(jsdom@26.1.0(canvas@3.2.3))(vite@8.0.3(@types/node@24.12.2)(esbuild@0.27.3)(jiti@1.21.7)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)):
+    dependencies:
+      '@vitest/expect': 4.1.11
+      '@vitest/mocker': 4.1.11(vite@8.0.3(@types/node@24.12.2)(esbuild@0.27.3)(jiti@1.21.7)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2))
+      '@vitest/pretty-format': 4.1.11
+      '@vitest/runner': 4.1.11
+      '@vitest/snapshot': 4.1.11
+      '@vitest/spy': 4.1.11
+      '@vitest/utils': 4.1.11
+      es-module-lexer: 2.0.0
+      expect-type: 1.4.0
+      magic-string: 0.30.21
+      obug: 2.1.1
+      pathe: 2.0.3
+      picomatch: 4.0.4
+      std-env: 4.2.0
+      tinybench: 2.9.0
+      tinyexec: 1.0.2
+      tinyglobby: 0.2.15
+      tinyrainbow: 3.1.1
+      vite: 8.0.3(@types/node@24.12.2)(esbuild@0.27.3)(jiti@1.21.7)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@opentelemetry/api': 1.9.0

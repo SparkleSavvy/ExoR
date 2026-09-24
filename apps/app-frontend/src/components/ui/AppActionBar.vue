@@ -16,6 +16,62 @@
 			<UnplugIcon class="text-secondary" />
 			<span class="text-sm text-contrast"> {{ formatMessage(messages.offline) }} </span>
 		</div>
+		<div v-if="queueItems.length > 0" class="flex items-center gap-1">
+			<Dropdown
+				placement="bottom-end"
+				:triggers="['click']"
+				:hide-triggers="['click']"
+				@show="void refreshQueue()"
+			>
+				<IconButton
+					v-tooltip="formatMessage(messages.pendingOfflineActions)"
+					type="quiet"
+					:label="formatMessage(messages.pendingOfflineActions)"
+				>
+					<ClockIcon class="text-secondary" />
+				</IconButton>
+				<template #popper>
+					<div class="flex w-[20rem] max-h-[24rem] flex-col gap-2 overflow-auto">
+						<div class="flex items-center justify-between gap-2 px-1 text-sm">
+							<span class="text-contrast">{{ formatMessage(messages.pendingOfflineActions) }}</span>
+							<span class="text-secondary">{{ queueItems.length }}</span>
+						</div>
+						<div
+							v-for="entry in queueItems"
+							:key="entry.id"
+							class="flex w-full items-center gap-2 rounded-xl bg-surface-4 p-2 text-sm"
+						>
+							<span class="mr-auto text-contrast">{{ entry.kind }}</span>
+							<button
+								v-tooltip="formatMessage(messages.retryOfflineAction)"
+								class="active:scale-95 flex items-center gap-1 text-secondary hover:text-primary disabled:opacity-40"
+								:disabled="offline"
+								@click="handleRetry(entry)"
+							>
+								{{ formatMessage(messages.retryOfflineAction) }}
+							</button>
+							<button
+								v-tooltip="formatMessage(messages.removeOfflineAction)"
+								class="active:scale-95 flex items-center gap-1 text-secondary hover:text-red"
+								@click="handleRemove(entry)"
+							>
+								{{ formatMessage(messages.removeOfflineAction) }}
+							</button>
+						</div>
+						<button
+							v-if="queueItems.length > 0 && !offline"
+							class="active:scale-95 flex w-full items-center justify-center gap-2 rounded-xl bg-surface-2 p-2 text-sm text-contrast"
+							@click="handleRetryAll"
+						>
+							{{ formatMessage(messages.retryAllOfflineActions) }}
+						</button>
+					</div>
+				</template>
+			</Dropdown>
+			<span class="flex items-center rounded-md bg-surface-5 px-1.5 py-0.5 text-xs text-secondary">
+				{{ queueItems.length }}
+			</span>
+		</div>
 		<AppUpdateButton />
 		<div
 			class="flex border-solid border-surface-5 text-sm font-medium items-center gap-2 py-1.5 px-3 rounded-xl border"
@@ -123,6 +179,7 @@
 
 <script setup lang="ts">
 import {
+	ClockIcon,
 	DownloadIcon,
 	DropdownIcon,
 	OnlineIndicatorIcon,
@@ -148,12 +205,15 @@ import { useRouter } from 'vue-router'
 import AppUpdateButton from '@/components/ui/app-update-button/index.vue'
 import DownloadManager from '@/components/ui/download-manager/index.vue'
 import { useAppEvent } from '@/composables/use-app-event'
+import { useConnectivity } from '@/composables/useConnectivity.ts'
 import { trackEvent } from '@/helpers/analytics'
 import { get_many as getInstances } from '@/helpers/instance'
+import { queue_list, queue_remove } from '@/helpers/offlineQueue'
 import { get_all as getRunningProcesses, kill as killProcess } from '@/helpers/process'
 import type { LoadingBar } from '@/helpers/state'
 import { progress_bars_list } from '@/helpers/state'
 import type { GameInstance } from '@/helpers/types'
+import { injectContentInstall } from '@/providers/content-install'
 
 const { handleError } = injectNotificationManager()
 const popupNotificationManager = injectPopupNotificationManager()
@@ -173,6 +233,22 @@ const messages = defineMessages({
 	offline: {
 		id: 'app.action-bar.offline',
 		defaultMessage: 'Offline',
+	},
+	pendingOfflineActions: {
+		id: 'app.action-bar.pending-offline-actions',
+		defaultMessage: 'Pending offline actions',
+	},
+	retryOfflineAction: {
+		id: 'app.action-bar.retry-offline-action',
+		defaultMessage: 'Retry',
+	},
+	removeOfflineAction: {
+		id: 'app.action-bar.remove-offline-action',
+		defaultMessage: 'Remove',
+	},
+	retryAllOfflineActions: {
+		id: 'app.action-bar.retry-all-offline-actions',
+		defaultMessage: 'Retry all',
 	},
 	viewInstance: {
 		id: 'app.action-bar.view-instance',
@@ -280,18 +356,68 @@ const refresh = async () => {
 
 await refresh()
 
-const offline = ref(!navigator.onLine)
-function handleOffline() {
-	offline.value = true
+const connectivity = useConnectivity()
+const offline = connectivity.isOffline
+
+const contentInstall = injectContentInstall()
+
+interface QueueEntryState {
+	project_id?: string
+	version_id?: string | null
+	instance_id?: string | null
+	source?: string
 }
-function handleOnline() {
-	offline.value = false
+
+interface OfflineQueueEntry {
+	id: string
+	kind: string
+	state?: QueueEntryState | null
+	status: string
+	created: number
+}
+
+const queueItems = ref<OfflineQueueEntry[]>([])
+
+async function refreshQueue(): Promise<void> {
+	queueItems.value = ((await queue_list().catch(() => [])) ?? []) as OfflineQueueEntry[]
 }
 
 onMounted(() => {
-	window.addEventListener('offline', handleOffline)
-	window.addEventListener('online', handleOnline)
+	void refreshQueue()
 })
+
+async function handleRetry(entry: OfflineQueueEntry): Promise<void> {
+	if (connectivity.isOffline.value) return
+	const state = entry.state ?? {}
+	if (!state.project_id) return
+	try {
+		await contentInstall.install(
+			state.project_id,
+			state.version_id ?? null,
+			state.instance_id ?? null,
+			state.source ?? 'offline_queue',
+		)
+		await queue_remove(entry.id)
+	} catch (error) {
+		handleError(toError(error))
+	}
+	await refreshQueue()
+}
+
+async function handleRemove(entry: OfflineQueueEntry): Promise<void> {
+	try {
+		await queue_remove(entry.id)
+	} catch (error) {
+		handleError(toError(error))
+	}
+	await refreshQueue()
+}
+
+async function handleRetryAll(): Promise<void> {
+	for (const entry of [...queueItems.value]) {
+		await handleRetry(entry)
+	}
+}
 
 useAppEvent('process', async () => {
 	await refresh()
@@ -515,7 +641,5 @@ function selectProcess(process: RunningProcess) {
 onBeforeUnmount(() => {
 	removeNotification()
 	dismissed.value = false
-	window.removeEventListener('offline', handleOffline)
-	window.removeEventListener('online', handleOnline)
 })
 </script>

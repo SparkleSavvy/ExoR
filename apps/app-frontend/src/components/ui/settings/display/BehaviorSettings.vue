@@ -19,9 +19,11 @@ import {
 	get,
 	set,
 } from '@/helpers/settings.ts'
+import { useConnectivity } from '@/composables/useConnectivity.ts'
 import { appSettingsModalContextKey } from '@/providers/app-settings-modal'
 
 const appSettings = useAppSettings()
+const connectivity = useConnectivity()
 const { formatMessage } = useVIntl()
 const auth = injectAuth()
 const { handleError } = injectNotificationManager()
@@ -128,6 +130,15 @@ const messages = defineMessages({
 		id: 'app.appearance-settings.skip-non-essential-warnings.description',
 		defaultMessage:
 			'Skip confirmations for low-risk actions such as duplicate installs, normal content deletion, bulk updates, unlinking, and repairs. Warnings for dangerous actions are always shown.',
+	},
+	offlineModeTitle: {
+		id: 'app.behavior-settings.offline-mode.title',
+		defaultMessage: 'Offline mode',
+	},
+	offlineModeDescription: {
+		id: 'app.behavior-settings.offline-mode.description',
+		defaultMessage:
+			'Block network requests. Installing or updating projects is queued until you reconnect.',
 	},
 })
 
@@ -344,6 +355,27 @@ onBeforeUnmount(() => {
 					<p class="m-0 mt-1">{{ formatMessage(messages.hideNametagDescription) }}</p>
 				</div>
 				<Toggle id="hide-nametag-skins-page" v-model="current.hideNametag" />
+			</div>
+		</div>
+	</section>
+
+	<section class="mt-8 border-0 border-t border-solid border-divider pt-6">
+		<h2 class="m-0 text-xl font-semibold text-contrast">
+			{{ formatMessage(messages.offlineModeTitle) }}
+		</h2>
+		<div class="mt-4 flex flex-col gap-6">
+			<div class="flex items-center justify-between gap-4">
+				<div>
+					<h3 class="m-0 text-lg font-semibold text-contrast">
+						{{ formatMessage(messages.offlineModeTitle) }}
+					</h3>
+					<p class="m-0 mt-1">{{ formatMessage(messages.offlineModeDescription) }}</p>
+				</div>
+				<Toggle
+					id="offline-mode"
+					:model-value="connectivity.isOffline.value"
+					@update:model-value="connectivity.setOffline($event)"
+				/>
 			</div>
 		</div>
 	</section>

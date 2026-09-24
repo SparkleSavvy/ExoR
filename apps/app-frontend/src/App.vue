@@ -113,6 +113,7 @@ import { useError } from '@/composables/use-error.js'
 import { useInstanceMetadataRefresh } from '@/composables/use-instance-metadata-refresh'
 import { useQuickInstanceLimit } from '@/composables/use-quick-instance-limit.ts'
 import { isDarkTheme, useTheme } from '@/composables/use-theme.ts'
+import { useConnectivity } from '@/composables/useConnectivity.ts'
 import { config } from '@/config'
 import { getAccountAppearance, rememberAccountAppearance } from '@/helpers/account-appearance.ts'
 import {
@@ -144,6 +145,7 @@ import {
 	removeUser,
 	setActive,
 } from '@/helpers/mr_auth.ts'
+import { queue_list, queue_remove } from '@/helpers/offlineQueue'
 import { mergeUrlQuery, parseModrinthLink } from '@/helpers/project-links.ts'
 import {
 	appSettingsKeys,
@@ -324,6 +326,7 @@ let adsConsentPopupId = null
 useAppEvent('ads_consent_required', handleAdsConsentRequired, appEvents)
 
 const appVersion = getVersion()
+const connectivity = useConnectivity()
 const tauriApiClient = new TauriModrinthClient({
 	userAgent: async () => `modrinth/theseus/${await appVersion} (support@modrinth.com)`,
 	labrinthBaseUrl: config.labrinthBaseUrl,
@@ -346,7 +349,7 @@ const tauriApiClient = new TauriModrinthClient({
 		new OfflineCacheFeature({
 			get: api_cache_get,
 			set: api_cache_set,
-			isOffline: () => localStorage.getItem('offline') === 'true',
+			isOffline: () => connectivity.isOffline.value,
 		}),
 	],
 })
@@ -469,13 +472,7 @@ const serverInvitePopupNotificationIds = new Set()
 let liveNotificationGeneration = 0
 let liveNotificationsEnabled = true
 
-const offline = ref(!navigator.onLine)
-window.addEventListener('offline', () => {
-	offline.value = true
-})
-window.addEventListener('online', () => {
-	offline.value = false
-})
+const offline = connectivity.isOffline
 
 const os = ref('')
 const isDevEnvironment = ref(false)
@@ -542,6 +539,8 @@ function handleEditMenuAction(action) {
 }
 
 onMounted(async () => {
+	void connectivity.check().catch(handleError)
+
 	try {
 		const listeners = await Promise.all([
 			listen('edit-menu://undo', () => handleEditMenuAction('undo')),
@@ -1085,7 +1084,12 @@ const errorModal = ref()
 const minecraftAuthErrorModal = ref()
 const minecraftRequiredModal = ref()
 
-const contentInstall = createContentInstall({ router, handleError, appEvents })
+const contentInstall = createContentInstall({
+	router,
+	handleError,
+	appEvents,
+	popupNotificationManager,
+})
 provideContentInstall(contentInstall)
 const {
 	instances: contentInstallInstances,
@@ -1118,6 +1122,32 @@ const {
 	handleIncompatibilityWarningInstall: handleContentInstallIncompatibilityWarningInstall,
 	handleIncompatibilityWarningCancel: handleContentInstallIncompatibilityWarningCancel,
 } = contentInstall
+
+connectivity.registerOnlineHandler(() => {
+	void flushOfflineQueue()
+})
+
+async function flushOfflineQueue(): Promise<void> {
+	const entries = await queue_list().catch(handleError)
+	if (!entries) return
+
+	for (const entry of entries) {
+		if (entry.status !== 'pending') continue
+		const { project_id, version_id, instance_id, source } = entry.state ?? {}
+		if (!project_id) continue
+		try {
+			await contentInstall.install(
+				project_id,
+				version_id ?? null,
+				instance_id ?? null,
+				source ?? 'offline_queue',
+			)
+			await queue_remove(entry.id)
+		} catch (error) {
+			handleError(error)
+		}
+	}
+}
 
 async function prepareCreationProjectInstall(projectId, projectType) {
 	if (projectType === 'modpack') {

@@ -11,7 +11,8 @@
 		"fix": "eslint . --fix && prettier --write .",
 		"intl:extract": "formatjs extract \"src/**/*.{vue,ts,tsx,js,jsx,mts,cts,mjs,cjs}\" --ignore \"**/*.d.ts\" --ignore node_modules --out-file src/locales/en-US/index.json --format crowdin --preserve-whitespace",
 		"intl:prune-local": "pnpm -w scripts i18n-icu-contract prune-local --scope apps/app-frontend",
-		"test": "vue-tsc --noEmit"
+		"test": "vue-tsc --noEmit",
+		"test:unit": "vitest run"
 	},
 	"dependencies": {
 		"@dnd-kit/vue": "^0.5.0",
@@ -66,6 +67,7 @@
 		"tailwindcss": "^3.4.4",
 		"typescript": "^5.5.4",
 		"vite": "^8.0.0",
+		"vitest": "^4.1.0",
 		"vue-component-type-helpers": "^3.1.8",
 		"vue-tsc": "^2.1.6"
 	},

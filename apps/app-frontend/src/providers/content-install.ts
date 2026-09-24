@@ -1,4 +1,5 @@
 import type { Labrinth } from '@modrinth/api-client'
+import type { AbstractPopupNotificationManager } from '@modrinth/ui'
 import {
 	type ContentInstallInstance,
 	type ContentInstallProjectInfo,
@@ -14,6 +15,7 @@ import { nextTick, type Ref, ref } from 'vue'
 import type { Router } from 'vue-router'
 
 import { useAppSettings } from '@/composables/use-app-settings.ts'
+import { useConnectivity } from '@/composables/useConnectivity.ts'
 import { trackEvent } from '@/helpers/analytics'
 import {
 	get_organization,
@@ -38,6 +40,7 @@ import {
 	remove_project,
 	type ResolveContentPlan,
 } from '@/helpers/instance'
+import { queue_enqueue } from '@/helpers/offlineQueue'
 import { get_game_versions } from '@/helpers/tags'
 import type { GameInstance, InstanceLoader } from '@/helpers/types'
 import type { AppEvents } from '@/providers/app-events'
@@ -69,6 +72,11 @@ const noCompatibleVersionsMessage = defineMessage({
 	id: 'app.content-install.no-compatible-versions',
 	defaultMessage:
 		'No available versions match {compatibilityLabel}. Select a version to install anyway. Dependencies will not be installed automatically.',
+})
+const queuedOfflineInstallMessage = defineMessage({
+	id: 'app.content-install.queued-offline',
+	defaultMessage:
+		'You are offline, so this action was queued. It will run automatically when you reconnect.',
 })
 
 const RESOLVABLE_PROJECT_TYPES = new Set<Labrinth.Content.v3.ContentType>([
@@ -188,6 +196,7 @@ export function createContentInstall(opts: {
 	router: Router
 	handleError: (err: unknown) => void
 	appEvents: AppEvents
+	popupNotificationManager: AbstractPopupNotificationManager
 }): ContentInstallContext {
 	const { formatMessage } = useVIntl()
 	const appSettings = useAppSettings()
@@ -833,6 +842,27 @@ export function createContentInstall(opts: {
 		createInstanceCallback: (instanceId: string) => void = () => {},
 		hints?: { preferredLoader?: string; preferredGameVersion?: string; showProjectInfo?: boolean },
 	) {
+		if (useConnectivity().isOffline.value) {
+			try {
+				await queue_enqueue('project_install', {
+					project_id: projectId,
+					version_id: versionId ?? null,
+					instance_id: instanceId ?? null,
+					source,
+				})
+				opts.popupNotificationManager.addPopupNotification({
+					contentType: 'standard',
+					title: formatMessage(queuedOfflineInstallMessage),
+					type: 'info',
+					autoCloseMs: 8000,
+				})
+			} catch (err) {
+				opts.handleError(err)
+			}
+			callback(versionId ?? undefined)
+			return
+		}
+
 		const project: Labrinth.Projects.v2.Project = await get_project(projectId, 'must_revalidate')
 
 		if (!project) {
