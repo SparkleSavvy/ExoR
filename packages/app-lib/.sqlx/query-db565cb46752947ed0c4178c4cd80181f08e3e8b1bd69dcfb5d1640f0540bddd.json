@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO api_cache (namespace, cache_key, data, updated) VALUES (?, ?, jsonb(?), unixepoch())\n         ON CONFLICT (namespace, cache_key) DO UPDATE SET data = excluded.data, updated = excluded.updated",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "db565cb46752947ed0c4178c4cd80181f08e3e8b1bd69dcfb5d1640f0540bddd"
+}

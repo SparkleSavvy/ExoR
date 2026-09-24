@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM api_cache WHERE namespace = ? AND cache_key = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "93f34bd94fa72ac30f9194e238339df380b0c8d6ed15e5ff0a719837058fd207"
+}

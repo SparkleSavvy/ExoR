@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO offline_queue (id, kind, state, created) VALUES (?, ?, jsonb(?), unixepoch())",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "aa2b4919fd90d2d569152f46a714de27d028362a2dacc6b423e6ac24c1a8568d"
+}

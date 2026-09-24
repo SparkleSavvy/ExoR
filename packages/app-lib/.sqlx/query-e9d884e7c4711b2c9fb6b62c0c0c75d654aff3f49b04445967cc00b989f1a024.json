@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT cache_key FROM api_cache WHERE namespace = ? ORDER BY updated DESC",
+  "describe": {
+    "columns": [
+      {
+        "name": "cache_key",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e9d884e7c4711b2c9fb6b62c0c0c75d654aff3f49b04445967cc00b989f1a024"
+}

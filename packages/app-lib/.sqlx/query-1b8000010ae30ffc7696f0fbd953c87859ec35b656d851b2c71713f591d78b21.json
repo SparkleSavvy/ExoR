@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id, kind, json(state) AS \"state!: serde_json::Value\", status, created\n\t\t FROM offline_queue ORDER BY created ASC",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "kind",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "state!: serde_json::Value",
+        "ordinal": 2,
+        "type_info": "Null"
+      },
+      {
+        "name": "status",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "created",
+        "ordinal": 4,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      false,
+      false
+    ]
+  },
+  "hash": "1b8000010ae30ffc7696f0fbd953c87859ec35b656d851b2c71713f591d78b21"
+}

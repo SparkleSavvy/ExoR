@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT json(data) AS \"data!: serde_json::Value\" FROM api_cache WHERE namespace = ? AND cache_key = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "data!: serde_json::Value",
+        "ordinal": 0,
+        "type_info": "Null"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "b67bc8e3b480e9cd3e07edf61461c1026ec4fdffc802eb2250b179fe96979b99"
+}

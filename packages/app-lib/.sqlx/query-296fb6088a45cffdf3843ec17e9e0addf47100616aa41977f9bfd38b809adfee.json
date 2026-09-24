@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE offline_queue\n\t\t SET attempted_after = unixepoch()\n\t\t WHERE status = 'pending' AND (attempted_after IS NULL OR attempted_after < unixepoch())\n\t\t RETURNING id, kind, json(state) AS \"state!: serde_json::Value\", status, created",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "kind",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "state!: serde_json::Value",
+        "ordinal": 2,
+        "type_info": "Null"
+      },
+      {
+        "name": "status",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "created",
+        "ordinal": 4,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      false,
+      false
+    ]
+  },
+  "hash": "296fb6088a45cffdf3843ec17e9e0addf47100616aa41977f9bfd38b809adfee"
+}
